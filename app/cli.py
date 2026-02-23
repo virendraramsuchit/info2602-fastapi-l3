@@ -157,7 +157,7 @@ def delete_todo(id: int):
 
         return
     
-
+#Exercise 3 
 @cli.command()
 def todos_done():
 
