@@ -1,5 +1,5 @@
 import typer
-from app.database import create_db_and_tables, get_session, drop_all
+from app.database import create_db_and_tables, get_session, drop_all, SessionDep
 from app.models import User, Todo, Category
 from fastapi import Depends
 from sqlmodel import select
@@ -122,6 +122,59 @@ def assign_category_to_todo(username:str, todo_id:int, category_text:str):
         db.add(todo)
         db.commit()
         print("Added category to todo")
+
+#Exercise 1
+@cli.command()
+def print_todo():
+    
+    with get_session() as db:
+        statement = select(Todo)
+        results = db.exec(statement).all()
+
+        for todo in results:
+
+            statement2 = select(User).where(User.id == todo.user_id)
+            results2 = db.exec(statement2).first()
+
+            print(f"To-do id: {todo.id}, Task - {todo.text}, Username - {results2.username}, Done status - {todo.done}")
+        
+        return
+    
+#Exercise 2
+@cli.command()
+def delete_todo(id: int):
+
+    with get_session() as db:
+
+        statement = select(Todo).where(Todo.id == id)
+        result = db.exec(statement).first()
+
+        removed_task = result.text
+        print(f"{removed_task} was deleted from the todo list")
+
+        db.delete(result)
+        db.commit()
+
+        return
+    
+
+@cli.command()
+def todos_done():
+
+    with get_session() as db:
+
+        statement = select(Todo)
+        results = db.exec(statement).all()
+
+        #Setting all to done 
+        for todo in results:
+
+            todo.done = True
+            db.add(todo)
+            db.commit()
+        
+        return 
+
         
 # 11. Conclusion
 # Thus concludes your introduction to flask-sqlalchemy. The usage of this library is at the very core of this course.
